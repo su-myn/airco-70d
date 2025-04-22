@@ -3476,62 +3476,49 @@ def delete_contact(id):
 #    create_account_types()
 
 def initialize_db():
-    # Check if the database exists by inspecting one of the tables
     inspector = inspect(db.engine)
     tables_exist = inspector.has_table('account_type')
 
     if not tables_exist:
-        # Only create tables and initial data if they don't exist
         db.create_all()
         print("Tables created successfully")
+        return True  # Return True if tables were created
+    else:
+        print("Database already exists, skipping initialization")
+        return False  # Return False if tables already existed
 
-        # Call your existing initialization functions here
-        # Make sure all these functions are defined elsewhere in your code
-        try:
+
+with app.app_context():
+    tables_created = initialize_db()
+
+    # Only run initialization functions if tables were just created
+    if tables_created:
+        # Call your initialization functions directly if they exist
+        if 'create_account_types' in globals():
             create_account_types()
             print("Account types created")
-        except Exception as e:
-            print(f"Error creating account types: {str(e)}")
 
-        try:
+        if 'create_default_company' in globals():
             create_default_company()
             print("Default company created")
-        except Exception as e:
-            print(f"Error creating default company: {str(e)}")
 
-        try:
+        if 'create_roles' in globals():
             create_roles()
             print("Roles created")
-        except Exception as e:
-            print(f"Error creating roles: {str(e)}")
 
-        try:
+        if 'create_admin_user' in globals():
             create_admin_user()
             print("Admin user created")
-        except Exception as e:
-            print(f"Error creating admin user: {str(e)}")
 
-        try:
+        if 'create_default_data' in globals():
             create_default_data()
             print("Default data created successfully")
-        except Exception as e:
-            print(f"Error creating default data: {str(e)}")
 
-        try:
+        if 'create_issue_items' in globals():
             create_issue_items()
             print("Issue items created successfully")
             print("Issue defaults created")
-        except Exception as e:
-            print(f"Error creating issue items: {str(e)}")
-    else:
-        print("Database already exists, skipping initialization")
 
-
-# Then update your app initialization section to this
-with app.app_context():
-    initialize_db()
-    # Remove any additional calls to these functions here
-    # They should all be called within initialize_db() now
 
 if __name__ == '__main__':
     app.run(debug=True)
