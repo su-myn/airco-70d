@@ -1,0 +1,37 @@
+# created by virtualenv automatically
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+pyenv.cfg
+bin/
+lib/
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+
+# Environment variables
+.env
+.flaskenv
+
+# PyInstaller specs
+*.spec

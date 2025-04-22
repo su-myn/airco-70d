@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to PropertyHub{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .dashboard-container {
+        padding: 0;
+    }
+
+    .user-welcome {
+        font-size: 13px;
+        color: #666;
+        text-align: right;
+        margin: 0 5px 5px 0;
+    }
+
+    .user-welcome span {
+        font-weight: bold;
+        color: #ee4d2d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Minimal user welcome -->
+    <div class="user-welcome">
+        Welcome, <span>{{ current_user.name }}</span>
+    </div>
+
+    <!-- Dashboard content will be added later -->
+</div>
+{% endblock %}

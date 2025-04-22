@@ -1,0 +1,186 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<div class="admin-stats">
+    <div class="stat-card">
+        <h3>{{ companies|length }}</h3>
+        <p>Total Companies</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ users|length }}</h3>
+        <p>Total Users</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ roles|length }}</h3>
+        <p>Total Roles</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ complaints|length }}</h3>
+        <p>Total Complaints</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ issues|length }}</h3>
+        <p>Total Issues</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ repairs|length }}</h3>
+        <p>Total Repairs</p>
+    </div>
+    <div class="stat-card">
+        <h3>{{ replacements|length }}</h3>
+        <p>Total Replacements</p>
+    </div>
+</div>
+
+<h2>Statistics by Company</h2>
+
+{% for stat in company_stats %}
+<div class="company-card">
+    <h3>{{ stat.name }}</h3>
+    <div class="company-stats">
+        <div class="company-stat">
+            <strong>{{ stat.users }}</strong>
+            <p>Users</p>
+        </div>
+        <div class="company-stat">
+            <strong>{{ stat.complaints }}</strong>
+            <p>Complaints</p>
+        </div>
+        <div class="company-stat">
+            <strong>{{ stat.issues }}</strong>
+            <p>Issues</p>
+        </div>
+        <div class="company-stat">
+            <strong>{{ stat.repairs }}</strong>
+            <p>Repairs</p>
+        </div>
+        <div class="company-stat">
+            <strong>{{ stat.replacements }}</strong>
+            <p>Replacements</p>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="admin-card">
+    <h3>Recent Users</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users[:5] %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.name }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.company.name }}</td>
+                <td>{{ user.role.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="{{ url_for('admin_users') }}" class="admin-btn">View All Users</a></p>
+</div>
+
+<div class="admin-card">
+    <h3>Recent Complaints</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Unit</th>
+                <th>Company</th>
+                <th>User</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for complaint in complaints[:5] %}
+            <tr>
+                <td>{{ complaint.id }}</td>
+                <td>{{ complaint.item }}</td>
+                <td>{{ complaint.unit }}</td>
+                <td>{{ complaint.company.name }}</td>
+                <td>{{ complaint.author.name }}</td>
+                <td>{{ complaint.date_added | malaysia_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="{{ url_for('admin_complaints') }}" class="admin-btn">View All Complaints</a></p>
+</div>
+
+<div class="admin-card">
+    <h3>Recent Repairs</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Unit</th>
+                <th>Status</th>
+                <th>Company</th>
+                <th>User</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repair in repairs[:5] %}
+            <tr>
+                <td>{{ repair.id }}</td>
+                <td>{{ repair.item }}</td>
+                <td>{{ repair.unit }}</td>
+                <td>{{ repair.status }}</td>
+                <td>{{ repair.company.name }}</td>
+                <td>{{ repair.author.name }}</td>
+                <td>{{ repair.created_at | malaysia_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="{{ url_for('admin_repairs') }}" class="admin-btn">View All Repairs</a></p>
+</div>
+
+<div class="admin-card">
+    <h3>Recent Replacements</h3>
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item</th>
+                <th>Unit</th>
+                <th>Status</th>
+                <th>Company</th>
+                <th>User</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for replacement in replacements[:5] %}
+            <tr>
+                <td>{{ replacement.id }}</td>
+                <td>{{ replacement.item }}</td>
+                <td>{{ replacement.unit }}</td>
+                <td>{{ replacement.status }}</td>
+                <td>{{ replacement.company.name }}</td>
+                <td>{{ replacement.author.name }}</td>
+                <td>{{ replacement.date_requested | malaysia_time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="{{ url_for('admin_replacements') }}" class="admin-btn">View All Replacements</a></p>
+</div>
+{% endblock %}
