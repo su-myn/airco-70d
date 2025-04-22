@@ -33,25 +33,10 @@ if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Session configuration
-app.config["SESSION_TYPE"] = "redis"
-redis_url = os.environ.get("REDIS_URL")
-if redis_url:
-    # Parse the Redis URL to extract components
-    parsed_url = urllib.parse.urlparse(redis_url)
-
-    # Configure Redis with SSL disabled for Heroku
-    app.config["SESSION_REDIS"] = redis.Redis(
-        host=parsed_url.hostname,
-        port=parsed_url.port,
-        username=parsed_url.username,
-        password=parsed_url.password,
-        ssl=False,  # Disable SSL
-        db=0
-    )
-else:
-    # For local development without Redis
-    app.config["SESSION_TYPE"] = "filesystem"
-    app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_USE_SIGNER"] = True
 
 
 # Session cookie settings
