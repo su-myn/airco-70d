@@ -12,11 +12,38 @@ from flask_migrate import Migrate
 import requests
 from icalendar import Calendar
 from sqlalchemy import inspect, text
+from flask_session import Session
+import redis
+import os
+
+# Initialize SQLAlchemy without app
+db = SQLAlchemy()
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 
-# Updated database configuration to support both local development and Heroku
+# Instead of using urandom which generates a new key on each restart,
+# use a consistent secret key from environment or a default
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+
+# Configure Redis for session management
+app.config["SESSION_TYPE"] = "redis"
+if os.environ.get("REDIS_URL"):
+    app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL"))
+else:
+    # For local development without Redis
+    app.config["SESSION_TYPE"] = "filesystem"
+    app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
+
+# Initialize Flask-Session
+Session(app)
+
+# Session cookie settings for better security and persistence
+app.config["SESSION_COOKIE_SECURE"] = True  # For HTTPS
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["PERMANENT_SESSION_LIFETIME"] = 7200  # 2 hours in seconds
+
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///propertyhub.db')
 # Ensure compatibility with Heroku's DATABASE_URL format
 if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
@@ -24,8 +51,10 @@ if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Initialize extensions with app
 db.init_app(app)
 migrate = Migrate(app, db)
+
 
 # Initialize extensions
 bcrypt = Bcrypt(app)
