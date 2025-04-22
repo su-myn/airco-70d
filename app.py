@@ -16,44 +16,46 @@ from flask_session import Session
 import redis
 import os
 
-# Initialize SQLAlchemy without app
-db = SQLAlchemy()
+def create_app():
+    app = Flask(__name__)
 
-app = Flask(__name__)
+    # Configure secret key
+    app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
-# Instead of using urandom which generates a new key on each restart,
-# use a consistent secret key from environment or a default
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///propertyhub.db')
+    # Ensure compatibility with Heroku's DATABASE_URL format
+    if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+        app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://',
+                                                                                              'postgresql://', 1)
 
-# Configure Redis for session management
-app.config["SESSION_TYPE"] = "redis"
-if os.environ.get("REDIS_URL"):
-    app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL"))
-else:
-    # For local development without Redis
-    app.config["SESSION_TYPE"] = "filesystem"
-    app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize Flask-Session
-Session(app)
+    # Session configuration
+    if os.environ.get("REDIS_URL"):
+        app.config["SESSION_TYPE"] = "redis"
+        app.config["SESSION_REDIS"] = redis.from_url(os.environ.get("REDIS_URL"))
+    else:
+        # For local development without Redis
+        app.config["SESSION_TYPE"] = "filesystem"
+        app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
 
-# Session cookie settings for better security and persistence
-app.config["SESSION_COOKIE_SECURE"] = True  # For HTTPS
-app.config["SESSION_COOKIE_HTTPONLY"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["PERMANENT_SESSION_LIFETIME"] = 7200  # 2 hours in seconds
+    # Session cookie settings
+    app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["PERMANENT_SESSION_LIFETIME"] = 7200  # 2 hours in seconds
 
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///propertyhub.db')
-# Ensure compatibility with Heroku's DATABASE_URL format
-if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
-    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+    # Initialize extensions
+    db.init_app(app)  # This connects your existing db instance to the app
+    Session(app)
+    migrate = Migrate(app, db)
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    return app
 
-# Initialize extensions with app
-db.init_app(app)
-migrate = Migrate(app, db)
+
+# Create the app instance
+app = create_app()
 
 
 # Initialize extensions
