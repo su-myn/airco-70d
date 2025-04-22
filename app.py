@@ -11,7 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import requests
 from icalendar import Calendar
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -3475,50 +3475,78 @@ def delete_contact(id):
 #    create_default_data()
 #    create_account_types()
 
+# Replace your database initialization function with this version
 def initialize_db():
-    inspector = inspect(db.engine)
-    tables_exist = inspector.has_table('account_type')
+    # First, let's try a direct check using SQLite to see if tables exist
+    try:
+        with db.engine.connect() as conn:
+            # Check if account_type table exists using a raw SQL query
+            result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='account_type'"))
+            tables_exist = result.rowcount > 0 or result.first() is not None
 
-    if not tables_exist:
-        db.create_all()
-        print("Tables created successfully")
-        return True  # Return True if tables were created
-    else:
-        print("Database already exists, skipping initialization")
-        return False  # Return False if tables already existed
+            if not tables_exist:
+                db.create_all()
+                print("Tables created successfully")
+                return True  # Tables were created
+            else:
+                print("Database already exists, skipping initialization")
+                return False  # Tables already existed
+    except Exception as e:
+        print(f"Error checking database: {str(e)}")
+        # Fall back to create_all which will handle exceptions internally
+        try:
+            db.create_all()
+            print("Tables created using fallback method")
+            return True
+        except:
+            print("Tables likely already exist, continuing...")
+            return False
 
 
+# Then replace your initialization code at the bottom of your file
 with app.app_context():
-    tables_created = initialize_db()
+    # Try to initialize the database
+    new_db = initialize_db()
 
-    # Only run initialization functions if tables were just created
-    if tables_created:
-        # Call your initialization functions directly if they exist
-        if 'create_account_types' in globals():
+    # Only run data initialization if we created a new database
+    if new_db:
+        # Add all these inside try/except blocks to ensure the app starts even if errors occur
+        try:
             create_account_types()
             print("Account types created")
+        except Exception as e:
+            print(f"Error creating account types: {str(e)}")
 
-        if 'create_default_company' in globals():
+        try:
             create_default_company()
             print("Default company created")
+        except Exception as e:
+            print(f"Error creating default company: {str(e)}")
 
-        if 'create_roles' in globals():
+        try:
             create_roles()
             print("Roles created")
+        except Exception as e:
+            print(f"Error creating roles: {str(e)}")
 
-        if 'create_admin_user' in globals():
+        try:
             create_admin_user()
             print("Admin user created")
+        except Exception as e:
+            print(f"Error creating admin user: {str(e)}")
 
-        if 'create_default_data' in globals():
+        try:
             create_default_data()
-            print("Default data created successfully")
+            print("Default data created")
+        except Exception as e:
+            print(f"Error creating default data: {str(e)}")
 
-        if 'create_issue_items' in globals():
+        try:
             create_issue_items()
-            print("Issue items created successfully")
+            print("Issue items created")
             print("Issue defaults created")
-
+        except Exception as e:
+            print(f"Error creating issue items: {str(e)}")
 
 if __name__ == '__main__':
     app.run(debug=True)
