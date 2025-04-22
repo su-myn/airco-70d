@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import requests
 from icalendar import Calendar
+from sqlalchemy import inspect
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -3462,10 +3463,34 @@ def delete_contact(id):
 
 
 # Create the database tables
+#with app.app_context():
+#    db.create_all()
+#    initialize_db()
+#    create_default_data()
+#    create_account_types()
+
+# Define the initialize_db function before using it
+def initialize_db():
+    # Check if a table already exists to determine if this is a fresh database
+    inspector = inspect(db.engine)
+    if not inspector.has_table('account_type'):
+        db.create_all()
+        # Run your initialization functions here
+        create_account_types()
+        create_default_company()
+        create_roles()
+        create_admin_user()
+        create_default_data()
+        create_issue_items()
+        print("Database initialized successfully")
+    else:
+        print("Database already exists, skipping initialization")
+
+# Then replace your current code with this
+# Create the database tables
 with app.app_context():
-    db.create_all()
-    create_default_data()
-    create_account_types()
+    initialize_db()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
