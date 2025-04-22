@@ -16,6 +16,7 @@ from flask_session import Session
 import redis
 import os
 import ssl
+import urllib.parse
 
 # Create the Flask app
 app = Flask(__name__)
@@ -35,21 +36,23 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config["SESSION_TYPE"] = "redis"
 redis_url = os.environ.get("REDIS_URL")
 if redis_url:
-    # Create a custom SSL context that doesn't verify certificates
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
+    # Parse the Redis URL to extract components
+    parsed_url = urllib.parse.urlparse(redis_url)
 
-    # Use the SSL context when connecting to Redis
-    app.config["SESSION_REDIS"] = redis.from_url(
-        redis_url,
-        ssl_cert_reqs=None,  # Don't verify SSL certificates
-        ssl=True
+    # Configure Redis with SSL disabled for Heroku
+    app.config["SESSION_REDIS"] = redis.Redis(
+        host=parsed_url.hostname,
+        port=parsed_url.port,
+        username=parsed_url.username,
+        password=parsed_url.password,
+        ssl=False,  # Disable SSL
+        db=0
     )
 else:
     # For local development without Redis
     app.config["SESSION_TYPE"] = "filesystem"
     app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
+
 
 # Session cookie settings
 app.config["SESSION_COOKIE_SECURE"] = True  # For HTTPS
