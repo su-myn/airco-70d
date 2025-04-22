@@ -41,7 +41,7 @@ def create_app():
         app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
 
     # Session cookie settings
-    app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
+    app.config["SESSION_COOKIE_SECURE"] = True  # Set to True in production with HTTPS
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["PERMANENT_SESSION_LIFETIME"] = 7200  # 2 hours in seconds
