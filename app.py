@@ -15,7 +15,13 @@ from sqlalchemy import inspect
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///propertyhub.db'
+
+# Updated database configuration to support both local development and Heroku
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///propertyhub.db')
+# Ensure compatibility with Heroku's DATABASE_URL format
+if app.config['SQLALCHEMY_DATABASE_URI'] and app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+    app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -3469,28 +3475,63 @@ def delete_contact(id):
 #    create_default_data()
 #    create_account_types()
 
-# Define the initialize_db function before using it
 def initialize_db():
-    # Check if a table already exists to determine if this is a fresh database
+    # Check if the database exists by inspecting one of the tables
     inspector = inspect(db.engine)
-    if not inspector.has_table('account_type'):
+    tables_exist = inspector.has_table('account_type')
+
+    if not tables_exist:
+        # Only create tables and initial data if they don't exist
         db.create_all()
-        # Run your initialization functions here
-        create_account_types()
-        create_default_company()
-        create_roles()
-        create_admin_user()
-        create_default_data()
-        create_issue_items()
-        print("Database initialized successfully")
+        print("Tables created successfully")
+
+        # Call your existing initialization functions here
+        # Make sure all these functions are defined elsewhere in your code
+        try:
+            create_account_types()
+            print("Account types created")
+        except Exception as e:
+            print(f"Error creating account types: {str(e)}")
+
+        try:
+            create_default_company()
+            print("Default company created")
+        except Exception as e:
+            print(f"Error creating default company: {str(e)}")
+
+        try:
+            create_roles()
+            print("Roles created")
+        except Exception as e:
+            print(f"Error creating roles: {str(e)}")
+
+        try:
+            create_admin_user()
+            print("Admin user created")
+        except Exception as e:
+            print(f"Error creating admin user: {str(e)}")
+
+        try:
+            create_default_data()
+            print("Default data created successfully")
+        except Exception as e:
+            print(f"Error creating default data: {str(e)}")
+
+        try:
+            create_issue_items()
+            print("Issue items created successfully")
+            print("Issue defaults created")
+        except Exception as e:
+            print(f"Error creating issue items: {str(e)}")
     else:
         print("Database already exists, skipping initialization")
 
-# Then replace your current code with this
-# Create the database tables
+
+# Then update your app initialization section to this
 with app.app_context():
     initialize_db()
-
+    # Remove any additional calls to these functions here
+    # They should all be called within initialize_db() now
 
 if __name__ == '__main__':
     app.run(debug=True)
